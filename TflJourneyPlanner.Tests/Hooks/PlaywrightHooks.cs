@@ -1,6 +1,7 @@
 using Microsoft.Playwright;
 using Reqnroll;
 using Reqnroll.BoDi;
+using TflJourneyPlanner.Tests.Support;
 
 namespace TflJourneyPlanner.Tests.Hooks;
 
@@ -9,6 +10,8 @@ public class PlaywrightHooks
 {
     private static IPlaywright _playwright = null!;
     private static IBrowser _browser = null!;
+    private static readonly string ConsentStatePath =
+        Path.Combine(AppContext.BaseDirectory, "consent-state.json");
 
     private readonly IObjectContainer _container;
     private readonly ScenarioContext _scenarioContext;
@@ -28,6 +31,22 @@ public class PlaywrightHooks
         {
             Headless = Environment.GetEnvironmentVariable("HEADED") != "1"
         });
+
+        await SaveCookieConsentAsync();
+    }
+
+    private static async Task SaveCookieConsentAsync()
+    {
+        var context = await _browser.NewContextAsync(new() { Locale = "en-GB" });
+        var page = await context.NewPageAsync();
+
+        await page.GotoAsync(TestSettings.JourneyPlannerUrl);
+        await page.GetByRole(AriaRole.Button, new() { Name = "Accept only essential cookies" })
+            .ClickAsync(new() { Timeout = 30000 });
+        await page.WaitForFunctionAsync("document.cookie.includes('CookieConsent')");
+
+        await context.StorageStateAsync(new() { Path = ConsentStatePath });
+        await context.CloseAsync();
     }
 
     [BeforeScenario]
@@ -36,7 +55,8 @@ public class PlaywrightHooks
         _context = await _browser.NewContextAsync(new()
         {
             ViewportSize = new() { Width = 1366, Height = 900 },
-            Locale = "en-GB"
+            Locale = "en-GB",
+            StorageStatePath = ConsentStatePath
         });
         var page = await _context.NewPageAsync();
         page.SetDefaultTimeout(15000);
