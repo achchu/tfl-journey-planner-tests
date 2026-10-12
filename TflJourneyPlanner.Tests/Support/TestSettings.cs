@@ -2,6 +2,6 @@ namespace TflJourneyPlanner.Tests.Support;
 
 public static class TestSettings
 {
-    // Trailing slash matters: without it TfL intermittently returns an empty page
+    // Keep the trailing slash - without it TfL intermittently returned an empty 200 response in my runs
     public const string JourneyPlannerUrl = "https://tfl.gov.uk/plan-a-journey/";
 }

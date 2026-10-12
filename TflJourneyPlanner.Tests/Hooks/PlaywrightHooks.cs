@@ -26,6 +26,9 @@ public class PlaywrightHooks
     [BeforeTestRun]
     public static async Task LaunchBrowser()
     {
+        // Results regularly took longer than Playwright's 5s default to load, which caused false failures
+        Assertions.SetDefaultExpectTimeout(15000);
+
         _playwright = await Playwright.CreateAsync();
         _browser = await _playwright.Chromium.LaunchAsync(new()
         {
@@ -35,6 +38,9 @@ public class PlaywrightHooks
         await SaveCookieConsentAsync();
     }
 
+    // Dismissing the banner in every scenario was flaky: it could take over 5s to appear, and
+    // #cb-cookieoverlay stayed on top of the page after dismissing it. Accepting essential cookies
+    // once and reusing the saved state means the banner never shows during the tests.
     private static async Task SaveCookieConsentAsync()
     {
         var context = await _browser.NewContextAsync(new() { Locale = "en-GB" });

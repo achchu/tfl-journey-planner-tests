@@ -16,8 +16,8 @@ Feature: Journey Planner handles invalid input
     Examples:
       | case             | from                                 | to                                |
       | invalid origin   | qzxjvwk                              | Covent Garden Underground Station |
-      | invalid dest     | Leicester Square Underground Station | zzqqvvxx                          |
-      | both invalid     | qzxjvwk                              | zzqqvvxx                          |
+      | invalid dest     | Leicester Square Underground Station | qzxjvwk                           |
+      | both invalid     | qzxjvwk                              | qzxjvwkq                          |
 
   @negative
   Scenario: A journey cannot be planned when no locations are entered
